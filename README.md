@@ -1,4 +1,4 @@
-#Raw SDRAM Controller and Memory Tester for DE10-Lite
+Raw SDRAM Controller and Memory Tester for DE10-Lite
 
 This project is a custom raw SDRAM controller and hardware memory test system built in SystemVerilog for the Terasic DE10-Lite FPGA board. The design interfaces directly with the onboard SDRAM without using vendor memory IP, and includes the control, verification, and display logic needed to test memory behavior on hardware.
 
