@@ -1,65 +1,96 @@
-# Raw SDRAM Controller Project for DE10-Lite
+#Raw SDRAM Controller and Memory Tester for DE10-Lite
 
-This project mirrors the structure of the GitHub SDRAM controller project the user studied:
+This project is a custom raw SDRAM controller and hardware memory test system built in SystemVerilog for the Terasic DE10-Lite FPGA board. The design interfaces directly with the onboard SDRAM without using vendor memory IP, and includes the control, verification, and display logic needed to test memory behavior on hardware.
 
-- `sdram_controller.sv` — raw SDRAM controller FSM
-- `comprehensive_tb.sv` — top-level memory test/demo
-- `debounce_explicit.sv` — button debounce helper
-- `bin2bcd.sv` — binary-to-BCD converter for error display
-- `LED_mux.sv` — six-digit 7-segment output formatter
-- `constraints/de10_lite_raw_sdram.qsf` — Quartus pin assignments
-- `constraints/de10_lite_raw_sdram.sdc` — 50 MHz clock constraint
+Project overview
 
-## Project concept
+The goal of this project is to design and integrate a working SDRAM subsystem on FPGA, including both the low-level memory controller and a top-level test engine. The controller handles SDRAM initialization, refresh timing, and command sequencing, while the top-level logic performs repeatable write and read/verify tests across memory and reports results through onboard LEDs and 7-segment displays.
 
-This project implements a **raw SDRAM controller** in SystemVerilog on the DE10-Lite board.
-It performs:
+Project files
+sdram_controller.sv — raw SDRAM controller implemented as an FSM
+comprehensive_tb.sv — top-level memory test and verification system
+debounce_explicit.sv — push-button debouncing logic
+bin2bcd.sv — binary-to-BCD conversion for decimal error display
+LED_mux.sv — six-digit 7-segment display driver
+constraints/de10_lite_raw_sdram.qsf — Quartus pin assignments for DE10-Lite
+constraints/de10_lite_raw_sdram.sdc — timing constraints for 50 MHz operation
+Features
 
-1. SDRAM initialization after reset
-2. periodic SDRAM refresh
-3. ACTIVATE / READ / WRITE / PRECHARGE sequencing
-4. a deterministic full-memory write test
-5. a deterministic full-memory read-and-verify test
-6. error counting displayed on the six onboard 7-segment displays
+This project implements:
 
-## Top-level usage
+SDRAM initialization after reset
+periodic refresh scheduling
+raw SDRAM command sequencing using:
+ACTIVATE
+READ
+WRITE
+PRECHARGE
+REFRESH
+deterministic full-memory write testing
+deterministic full-memory readback and verification
+error counting and display on the six onboard 7-segment displays
+button-controlled test execution and LED-based hardware status monitoring
+How it works
 
-- `SW[9]` = global run/reset enable
-  - `1` => run
-  - `0` => reset controller/tester
-- `KEY[0]` = start full-memory WRITE test
-- `KEY[1]` = start full-memory READ/VERIFY test
-- `SW[0]` = inject intentional errors into two pages during write test
+The system is divided into two main parts:
 
-## LEDs
+1. SDRAM controller
 
-- `LEDR[9]` = controller ready
-- `LEDR[8]` = debounced KEY0 level
-- `LEDR[7]` = debounced KEY1 level
-- `LEDR[6]` = write test active
-- `LEDR[5]` = read test active
-- `LEDR[4]` = error flag (nonzero error count)
-- `LEDR[3:0]` = low bits of current page index
+The SDRAM controller translates simple FPGA-side requests into the low-level command and timing behavior required by SDRAM. It manages:
 
-## Important engineering note
+power-up initialization
+mode register loading
+periodic refresh operations
+row activation and precharge timing
+burst read and burst write transactions
+bidirectional SDRAM data bus control
+2. Top-level memory tester
 
-This is a raw controller project intended for learning and project/resume use.
-It is structured for DE10-Lite and Quartus, but the exact SDRAM clock relationship may still need tuning on real hardware.
-The current version uses a conservative direct 50 MHz SDRAM clock path to maximize bring-up simplicity.
+The top-level tester drives the controller through a full-memory test flow. It:
 
-## Quartus steps
+starts write or read/verify tests using push buttons
+generates deterministic test patterns based on page and burst index
+compares readback data against expected values
+counts mismatches
+displays error totals and live status using LEDs and 7-segment displays
+Board controls
+Switches
+SW[9] — global run/reset control
+1 = run
+0 = reset
+SW[0] — optional error injection during write test
+Push buttons
+KEY[0] — start full-memory write test
+KEY[1] — start full-memory read/verify test
+LED status indicators
+LEDR[9] — SDRAM controller ready
+LEDR[8] — debounced KEY[0] level
+LEDR[7] — debounced KEY[1] level
+LEDR[6] — write test active
+LEDR[5] — read/verify test active
+LEDR[4] — error flag (error_count != 0)
+LEDR[3:0] — low bits of current memory page
+Engineering notes
 
-1. Create a Quartus project for device `10M50DAF484C7G`
-2. Add all RTL files under `rtl/`
-3. Import or include `constraints/de10_lite_raw_sdram.qsf`
-4. Add `constraints/de10_lite_raw_sdram.sdc`
-5. Set top-level entity to `comprehensive_tb`
-6. Compile
-7. Program `.sof` over JTAG
+This project was built as a raw memory-controller design rather than an IP-based memory interface. The focus was on understanding and implementing the actual SDRAM protocol and integrating it into a complete FPGA test system.
 
-## Resume wording suggestion
+The current version is structured for Quartus and the DE10-Lite, using a conservative 50 MHz direct SDRAM clock path for simpler bring-up. Depending on board behavior and timing closure, the SDRAM clock relationship may still need tuning for fully robust hardware operation.
 
-**Raw SDRAM Controller and Memory Tester — SystemVerilog, Intel MAX 10, Quartus**
-- Designed a raw SDRAM controller for the DE10-Lite FPGA board implementing initialization, refresh scheduling, and ACTIVATE/READ/WRITE/PRECHARGE command sequencing.
-- Built a top-level full-memory test engine that writes deterministic patterns, reads them back, verifies correctness, and displays error counts on onboard 7-segment displays.
-- Integrated board-level push-button control, status LEDs, and DE10-Lite SDRAM pin constraints in Quartus for hardware bring-up.
+Quartus setup
+Create a Quartus project targeting device 10M50DAF484C7G
+Add all RTL files from the rtl/ directory
+Include constraints/de10_lite_raw_sdram.qsf
+Add constraints/de10_lite_raw_sdram.sdc
+Set the top-level entity to comprehensive_tb
+Compile the project
+Program the .sof file over JTAG
+What this project demonstrates
+
+This project demonstrates:
+
+FPGA-based memory-controller design
+finite state machine implementation
+timing-aware external memory interfacing
+board-level system integration in Quartus
+hardware test and verification methodology
+real-time debugging using LEDs and 7-segment displays
