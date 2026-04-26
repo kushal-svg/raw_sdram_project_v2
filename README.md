@@ -169,8 +169,4 @@ Quartus Setup
 6. Compile the design
 7. Program the .sof file over JTAG
 
-Resume-Friendly Project Summary
 
-Raw SDRAM Controller and Buffering Subsystem — SystemVerilog, Quartus, Intel MAX 10 (DE10-Lite)
-
-Designed a custom raw SDRAM controller for the DE10-Lite FPGA board implementing initialization, refresh scheduling, and ACTIVATE/READ/WRITE/PRECHARGE command sequencing without vendor memory IP. Built a top-level verification platform that writes deterministic patterns to external memory, reads them back, detects mismatches, and displays live results on onboard LEDs and 7-segment displays. Structured the design as a reusable external-memory subsystem suitable for data buffering in video, sensor, DSP, and accelerator-based FPGA systems.
